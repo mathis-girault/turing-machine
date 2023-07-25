@@ -1,6 +1,7 @@
 from enum import Enum
 import functools
 from typing import Literal, Callable
+
 CombiVal = Literal[1, 2, 3, 4, 5]
 Optionval = Literal[1, 2, 3, 4]
 
@@ -18,6 +19,16 @@ class Shape(Enum):
     @classmethod
     def print_list(cls) -> str:
         return f"Ordered shapes: ({', '.join([elem.value for elem in cls.list_shapes()])})"
+    
+    @classmethod
+    def get_shape(cls, shape: str):
+        if shape == "triangle":
+            return Shape.TRIANGLE
+        elif shape == "carre":
+            return Shape.CARRE
+        elif shape == "rond":
+            return Shape.ROND
+        raise ValueError(f"Shape {shape} is not valid")
 
 class Verifs(Enum):
     """ Define game verificators """

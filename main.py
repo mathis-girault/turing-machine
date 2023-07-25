@@ -2,8 +2,8 @@
 
 import tkinter as tk
 from visual import MainWindow
-from verificators import Compare, OccurenceVal, Smallest, Compare2
-from utils import Combi, Shape
+from verificators import Compare, OccurenceVal, SmallestShape, Compare2
+from utils import Combi, Shape, Verifs
 from game import Game
 from solver import Solver
 
@@ -29,11 +29,12 @@ class Main:
 
 
 if __name__ == "__main__":
-    verif_a = Compare(Shape.CARRE, 4)
-    verif_b = OccurenceVal(3)
-    verif_c = Compare2(Shape.TRIANGLE, Shape.CARRE)
-    verif_d = Smallest()
-    new_game = Game(verif_a, verif_b, verif_c, verif_d)
+    new_game = Game()
+    new_game.set_verificator(Verifs.A, Compare(Shape.CARRE, 4))
+    new_game.set_verificator(Verifs.B, OccurenceVal(3))
+    new_game.set_verificator(Verifs.C, Compare2(Shape.TRIANGLE, Shape.CARRE))
+    new_game.set_verificator(Verifs.D, SmallestShape())
+
     new_game.set_solution(Combi(2, 4, 1))
     # new_game.set_solution(Combi(4, 4, 3))
     # new_game.set_solution(Combi(5, 4, 5))

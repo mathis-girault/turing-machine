@@ -4,29 +4,52 @@ from utils import Combi, Verifs
 
 class Game:
     """ Define a game setup """
+    nb_verificators: int = 0
     solution: Combi
     A: Verificator
     B: Verificator
     C: Verificator
     D: Verificator
-    E: Optional[Verificator]
-    F: Optional[Verificator]
+    E: Optional[Verificator] = None
+    F: Optional[Verificator] = None
 
-    def __init__(self, A: Verificator, B: Verificator, C: Verificator, D: Verificator, E: Optional[Verificator] = None, F: Optional[Verificator] = None) -> None:
-        self.A = A
-        A.set_slot("A")
-        self.B = B
-        B.set_slot("B")
-        self.C = C
-        C.set_slot("C")
-        self.D = D
-        D.set_slot("D")
-        self.E = E
-        if E is not None:
-            E.set_slot("E")
-        self.F = F
-        if F is not None:
-            F.set_slot("F")
+    # def __init__(self, A: Verificator, B: Verificator, C: Verificator, D: Verificator, E: Optional[Verificator] = None, F: Optional[Verificator] = None) -> None:
+    #     self.A = A
+    #     A.set_slot("A")
+    #     self.B = B
+    #     B.set_slot("B")
+    #     self.C = C
+    #     C.set_slot("C")
+    #     self.D = D
+    #     D.set_slot("D")
+    #     self.E = E
+    #     if E is not None:
+    #         E.set_slot("E")
+    #     self.F = F
+    #     if F is not None:
+    #         F.set_slot("F")
+
+    def set_verificator(self, slot: Verifs, verificator: Verificator) -> None:
+        """ Set the verificator """
+        self.nb_verificators += 1
+        if slot == Verifs.A:
+            self.A = verificator
+            verificator.set_slot("A")
+        if slot == Verifs.B:
+            self.B = verificator
+            verificator.set_slot("B")
+        if slot == Verifs.C:
+            self.C = verificator
+            verificator.set_slot("C")
+        if slot == Verifs.D:
+            self.D = verificator
+            verificator.set_slot("D")
+        if slot == Verifs.E:
+            self.E = verificator
+            verificator.set_slot("E")
+        if slot == Verifs.F:
+            self.F = verificator
+            verificator.set_slot("F")
 
     def set_solution(self, solution: Combi) -> None:
         """ Set the solution """

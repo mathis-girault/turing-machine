@@ -1,4 +1,5 @@
 import abc
+from enum import Enum
 from typing import Set, Optional, Union
 from utils import Combi, Shape, CombiVal
 
@@ -39,6 +40,7 @@ class Verificator(abc.ABC):
     def get_slot(self) -> str:
         """ Return the slot name """
         return self.slot
+
 
 class Compare(Verificator):
     """ Define a verificator that compare a shape's value to a given value """
@@ -179,8 +181,8 @@ class OccurenceAll(Verificator):
         return "Verifying number of identical numbers"
 
 
-class Smallest(Verificator):
-    """ Define a verificator that checks which shape is smallest """
+class SmallestShape(Verificator):
+    """ Define a verificator that checks which shape is the smallest """
     def __init__(self):
         self.results = [Shape.CARRE, Shape.ROND, Shape.TRIANGLE]
 
@@ -235,7 +237,7 @@ class Smallest(Verificator):
         return self.__calc_smallest(combinaison)
 
     def __repr__(self) -> str:
-        return "Verifying which shape is smallest"
+        return "Verifying which shape is SmallestShape"
 
 
 class Compare2(Verificator):
@@ -287,3 +289,25 @@ class Compare2(Verificator):
 
     def __repr__(self) -> str:
         return f"Comparing value between {self.shape1.value} and {self.shape2.value}"
+
+
+
+class AllVerificators(Enum):
+    """ Define all verificators """
+    COMPARE = Compare
+    COMPARE2 = Compare2
+    OCCURENCEVAL = OccurenceVal
+    SMALLESTSHAPE = SmallestShape
+
+    @classmethod
+    def get_all_verificators(cls) -> list:
+        role_names = [member for _, member in cls.__members__.items()]
+        return role_names
+
+
+verificator_classes = {
+    "Compare": Compare,
+    "Compare2": Compare2,
+    "OccurenceVal": OccurenceVal,
+    "SmallestShape": SmallestShape
+}

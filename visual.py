@@ -1,10 +1,11 @@
 #!/usr/bin/env python3.9
 
+import inspect
 import tkinter as tk
-from verificators import Verificator
+from verificators import Verificator, verificator_classes
 from game import Game
 from solver import Solver
-from utils import Combi
+from utils import Combi, Verifs, Shape
 
 class VerificatorVisual(tk.Frame):
     """ visual representation of a verificator """
@@ -26,24 +27,113 @@ class VerificatorVisual(tk.Frame):
 
 class GameVisual(tk.Frame):
     """ visual representation of a game """
+    nb_verificators: int = 4
 
     def __init__(self, parent, game: Game):
         super().__init__(parent, bg="lightblue", borderwidth=1, relief=tk.SOLID, padx=10, pady=10)
         self.label = tk.Label(self, text="Game setup")
         self.label.configure(bg=self['bg'], font=("Arial", 12, "bold"))
         self.label.grid(row=0, column=0, columnspan=2)
+        self.game = game
 
-        for index, verificator_dict in enumerate(game.list_verificators()):
-            for letter, verificator in verificator_dict.items():
-                letter_label = tk.Label(self, text=letter)
-                letter_label.configure(bg=self['bg'], font=("Arial", 14, "bold"))
-                letter_label.grid(row=index+1, column=0, padx=5, pady=5)
+        for i in range(self.nb_verificators):
+            self.add_verificator_selector(i)
 
-                verificator_label = VerificatorVisual(self, verificator)
-                verificator_label.grid(row=index+1, column=1, pady=10, sticky="ew")
+        self.add_verificator_button = tk.Button(self, text="Add Verificator", command=self.new_verificator)
+        self.add_verificator_button.grid(row=self.nb_verificators+1, column=0, columnspan=2, pady=5)
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(len(game.list_verificators())+1, weight=1)
+
+    def new_verificator(self):
+        """ Adds a verificator """
+        self.nb_verificators += 1
+
+        if self.nb_verificators > 6:
+            self.add_verificator_button.destroy()
+        else:
+            self.add_verificator_button.grid(row=self.nb_verificators+1, column=0, columnspan=2, pady=5)
+
+        self.add_verificator_selector(self.nb_verificators - 1)
+
+
+    def add_verificator_selector(self, index: int):
+        """ Adds a verificator selector """
+        verif_letter = chr(ord('A') + index)
+
+        letter_label = tk.Label(self, text=verif_letter)
+        letter_label.configure(bg=self['bg'], font=("Arial", 14, "bold"))
+        letter_label.grid(row = index + 1, column=0, padx=5, pady=5)
+
+        verificator_visual = VerificatorSelector(self, self.game, Verifs(verif_letter))
+        verificator_visual.grid(row = index + 1, column=1, pady=10, sticky="ew")
+
+class VerificatorSelector(tk.Frame):
+    """ Visual representation of a verificator selector """
+    choices = list(verificator_classes.keys())
+    my_params = []
+
+    def __init__(self, parent: tk.Frame, game: Game, slot: Verifs):
+        super().__init__(parent, bg="#f88", borderwidth=1, relief=tk.SOLID, padx=10, pady=2)
+        self.label = tk.Label(self, text="Verificator Selector")
+        self.label.configure(bg=self['bg'], font=("Arial", 12, "bold"))
+        self.label.grid(row=0, column=0, columnspan=2, pady=3)
+
+        self.game = game
+        self.slot = slot
+
+        self.verificator_option = tk.StringVar(self)
+        self.verificator_option.set(self.choices[0])
+
+        self.dropdown = tk.OptionMenu(self, self.verificator_option, *self.choices, command=self.select_option)
+        self.dropdown.grid(row=1, column=0, pady=5)
+
+        button = tk.Button(self, text="Add", command=self.apply_selection)
+        button.grid(row=1, column=1, pady=5, padx=5)
+
+        self.select_option(self.verificator_option.get())
+
+    def select_option(self, selected_verificator):
+        """ Selects the option """
+        self.verificator_option.set(selected_verificator)
+        class_signature = inspect.signature(verificator_classes[self.verificator_option.get()])
+
+        for widgets in self.my_params:
+            widgets[0].destroy()
+            widgets[1].destroy()
+        self.my_params = []
+
+        for index, (param_name, param) in enumerate(class_signature.parameters.items()):
+            if param_name == "self":
+                continue
+
+            choices = list(param.annotation.__args__ if hasattr(param.annotation, "__args__") else list(map(lambda shape: shape.value, list(param.annotation))))
+
+            selected_option = tk.StringVar()
+            selected_option.set(choices[0])
+            params_drop_down = tk.OptionMenu(self, selected_option, *choices)
+            params_drop_down.grid(row = 2 + index, column=1, columnspan=2)
+
+            param_label = tk.Label(self, text=param_name)
+            param_label.grid(row = 2 + index, column=0)
+
+            self.my_params.append([params_drop_down, param_label, selected_option])
+
+    def apply_selection(self):
+        """ Selects the option """
+        selected_value = self.verificator_option.get()
+        signature = list(map(lambda param: int(param) if param.isdigit() else Shape.get_shape(param), [widgets[2].get() for widgets in self.my_params]))
+        new_verificator = verificator_classes[selected_value](*signature)
+
+        self.game.set_verificator(self.slot, new_verificator)
+
+        # Clear all widgets
+        for widgets in self.my_params:
+            widgets[0].destroy()
+            widgets[1].destroy()
+        self.dropdown.destroy()
+
+        verificator_label = VerificatorVisual(self, new_verificator)
+        verificator_label.grid(row=1, column=1, pady=10, sticky="ew")
+
 
 
 class ResultsVisual(tk.Frame):
@@ -148,16 +238,16 @@ class MainWindow(tk.Frame):
     def add_elements(self):
         """ Add the various visual elements """
         game_visual = GameVisual(self, self.game)
-        game_visual.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        game_visual.grid(row=0, column=0, padx=10, pady=10, rowspan=2, sticky="nsew")
 
         results_visual = ResultsVisual(self, self.solver)
-        results_visual.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        results_visual.grid(row=0, column=1, padx=10, pady=10, rowspan=2, sticky="nsew")
 
         history_visual = HistoryVisual(self)
-        history_visual.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        history_visual.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
 
         solver_visual = SolverVisual(self, self.solver, results_visual, history_visual)
-        solver_visual.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        solver_visual.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
 
         self.grid_columnconfigure(0, weight=1)

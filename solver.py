@@ -5,7 +5,7 @@
 import itertools
 from typing import Literal, Tuple, Optional
 
-from verificators import Verificator, Compare, OccurenceVal, Smallest, Compare2
+from verificators import Verificator, Compare, OccurenceVal, SmallestShape, Compare2
 from game import Game
 from utils import Combi, Verifs, Shape
 
